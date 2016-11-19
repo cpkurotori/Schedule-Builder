@@ -42,6 +42,21 @@ class Course:
             sec.print_info()
             print
         return
+        
+    def write_info(self, counter):
+        for sec in self.secs:
+            file = open('courses.txt', 'a')
+            z = str(counter)
+            file.write ("entry:"+z+'\n')
+            file.write("course:" + self.subject_code + " " + self.course_num + "-" + self.sec_num + '\n')
+            file.write("credits:"+self.credits + " credits" + '\n')
+            file.close()
+            sec.write_info()
+            file = open('courses.txt', 'a')
+            file.write("---------------------------"+'\n')
+            counter = counter + 1
+            file.close()
+        return counter
 
     def get_num_sec(self):
         return len(self.secs)
@@ -54,7 +69,8 @@ class Section:
         if VAR12_1_sec.find('TBA') is not -1:
             raise ValueError("Not enough information available from WebAdvisor")
         self.type = re.search(r"(Lecture|Laboratory)", VAR12_1_sec).group(0)
-        dates = re.search(r"[0-9]{2}/[0-9]{2}/[0-9]{4}-[0-9]{2}/[0-9]{2}/[0-9]{4}", VAR12_1_sec).group(0)
+        if self.type is "Lecture" or "Laboratory":
+            dates = re.search(r"[0-9]{2}/[0-9]{2}/[0-9]{4}-[0-9]{2}/[0-9]{2}/[0-9]{4}", VAR12_1_sec).group(0)
         self.start_date = dates[0:10]
         self.end_date =  dates[11:21]
         self.sec_num = re.search(r"\([0-9]{2}\)", VAR12_1_sec).group(0)[1:3]
@@ -63,9 +79,11 @@ class Section:
         self.start_time = times[0:8]
         self.end_time = times[10:17]
         try:
-            self.campus = re.search(r"(Fremont|Building|Newark)", VAR12_1_sec).group(0)
+            self.campus = re.search(r"(Fremont|Newark|Smith Center|Chemistry Laboratory|Hyman Hall|Building)", VAR12_1_sec).group(0)
             if self.campus is "Building":
                 self.campus = "Fremont"
+            if self.campus is "Chemistry Laboratory":
+                self.campus = "Fremont - Chem Lab Building"
         except AttributeError:
             self.campus = re.split(r", ", VAR12_1_sec)[1]
         self.classroom = re.search(r"(Building )?[0-9]?( , )?Room [0-9A-Za-z\-]+", VAR12_1_sec).group(0)
@@ -78,4 +96,20 @@ class Section:
         print
         print self.start_time + " - " + self.end_time
         print self.campus + " " + self.classroom
+        return
+        
+    def write_info(self):
+        file = open ('courses.txt', 'a')
+        file.write  ("type:"+self.type + " (" + self.sec_num + ")" + '\n')
+        file.write  ("day:")
+        for item in self.days:
+            file.write  ("|"+item)
+        file.write  ("\n")
+        file.write  ("start date:" + self.start_date + '\n')
+        file.write  ("end date:" + self.end_date + '\n')
+        file.write  ("start time:" + self.start_time+'\n')
+        file.write  ("end time:" + self.end_time + '\n')
+        file.write  ("campus:" + self.campus + '\n')
+        file.write ("classroom:" + self.classroom + '\n')
+        file.close ()
         return
